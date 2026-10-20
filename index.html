@@ -177,6 +177,144 @@ document.addEventListener('click',e=>{
 
 render();
 })();
+    
+</script>
+    <!-- 1. Import Supabase JS Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- 2. UI Modal Login & Input PIN -->
+<div id="authContainer" class="auth-overlay">
+  <div class="auth-card">
+    <div class="brand-logo" style="justify-content:center;margin-bottom:15px">
+      <span class="shield">S</span> <b>SHERLOCK <span style="color:var(--yellow)">TOOLS</span></b>
+    </div>
+
+    <!-- Tampilan 1: Tombol Login Google -->
+    <div id="stepGoogle">
+      <h3>Portal Pembelajaran Sales</h3>
+      <p class="muted">Gunakan akun Google yang terdaftar untuk mengakses materi & kuis.</p>
+      <button class="btn full" id="btnLoginGoogle">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:8px"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        Login dengan Google
+      </button>
+    </div>
+
+    <!-- Tampilan 2: Buat / Masukkan PIN -->
+    <div id="stepPin" class="hide">
+      <h3 id="pinTitle">Masukkan PIN Anda</h3>
+      <p class="muted" id="pinSub">Gunakan 6-digit PIN yang telah Anda buat.</p>
+      <input type="password" id="inputPin" maxlength="6" class="field" style="text-align:center;font-size:24px;letter-spacing:8px" placeholder="******">
+      <button class="btn full" id="btnSubmitPin">Verifikasi PIN</button>
+    </div>
+
+    <div id="authError" class="notice hide" style="background:#ffebe9;border-color:#ffc1c0;color:#c01c28;margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- CSS Modal Login -->
+<style>
+.auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: grid; place-items: center; padding: 20px; }
+.auth-card { background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 360px; text-align: center; }
+</style>
+
+<!-- 3. Skrip Integrasi Supabase JS -->
+<script>
+const SUPABASE_URL = 'https://PROJECT_ID_ANDA.supabase.co';
+const SUPABASE_KEY = 'ANON_KEY_SUPABASE_ANDA';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Elemen DOM
+const $id = id => document.getElementById(id);
+let currentUser = null;
+
+// A. Fungsi Login dengan Google
+$id('btnLoginGoogle').onclick = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin }
+  });
+  if (error) showError('Gagal terhubung dengan Google: ' + error.message);
+};
+
+// B. Cek Sesi Login yang Sedang Aktif
+async function checkAuthSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (session) {
+    currentUser = session.user;
+    
+    // Cek profil & PIN di tabel user_profiles
+    const { data: profile, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (error || !profile) {
+      showError('Akses Ditolak: Email Anda tidak terdaftar dalam whitelist admin.');
+      await supabase.auth.signOut();
+      return;
+    }
+
+    // Tampilkan Form PIN
+    $id('stepGoogle').classList.add('hide');
+    $id('stepPin').classList.remove('hide');
+
+    if (!profile.is_pin_set) {
+      $id('pinTitle').textContent = 'Buat 6-Digit PIN Baru';
+      $id('pinSub').textContent = 'PIN ini akan digunakan untuk login di perangkat ini seterusnya.';
+      $id('btnSubmitPin').textContent = 'Simpan PIN Baru';
+      $id('btnSubmitPin').onclick = () => createNewPin(profile.id);
+    } else {
+      $id('pinTitle').textContent = 'Masukkan PIN Portal';
+      $id('btnSubmitPin').onclick = () => verifyPin(profile.pin_hash);
+    }
+  }
+}
+
+// C. Fungsi Membuat PIN Baru
+async function createNewPin(userId) {
+  const pin = $id('inputPin').value;
+  if (pin.length !== 6 || isNaN(pin)) {
+    showError('PIN harus berupa 6 angka!');
+    return;
+  }
+
+  // Simpan PIN ke Supabase (Sebaiknya di-hash)
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ pin_hash: pin, is_pin_set: true })
+    .eq('id', userId);
+
+  if (!error) {
+    unlockPortal();
+  } else {
+    showError('Gagal menyimpan PIN.');
+  }
+}
+
+// D. Fungsi Verifikasi PIN
+function verifyPin(correctPin) {
+  const inputPin = $id('inputPin').value;
+  if (inputPin === correctPin) {
+    unlockPortal();
+  } else {
+    showError('PIN salah! Silakan coba lagi.');
+  }
+}
+
+function unlockPortal() {
+  $id('authContainer').classList.add('hide'); // Tutup modal login, masuk ke portal
+}
+
+function showError(msg) {
+  const errBox = $id('authError');
+  errBox.textContent = msg;
+  errBox.classList.remove('hide');
+}
+
+// Jalankan pengecekan saat halaman selesai dimuat
+checkAuthSession();
 </script>
 </body>
 </html>
