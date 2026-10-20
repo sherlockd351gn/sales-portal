@@ -139,9 +139,16 @@ document.addEventListener('click',e=>{
         <div class="eyebrow">VIDEO TRAINING</div>
         <h2 class="title">${m.name}</h2>
         <div class="video-wrapper">
-          <div class="shield-top"></div>
-          <iframe src="https://www.youtube.com/embed/${m.ytid}?rel=0&modestbranding=1&controls=1" allowfullscreen></iframe>
-        </div>
+  <!-- Pelindung Atas (Mencegah Klik Pop-out/Buka di Google Drive) -->
+  <div class="drive-shield"></div>
+
+  <!-- Player Video Google Drive -->
+  <iframe 
+    src="https://drive.google.com/file/d/KODE_FILE_VIDEO_ANDA/preview" 
+    allow="autoplay" 
+    allowfullscreen>
+  </iframe>
+</div>
         <div class="notice">🔒 <b>Proteksi Video:</b> Judul & tombol bagikan telah dikunci untuk menjaga kerahasiaan materi internal.</div>
         <button class="btn secondary full" style="margin-top:12px" data-action="training">← Kembali ke Daftar Materi</button>
       `;
