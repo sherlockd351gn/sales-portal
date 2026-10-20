@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sherlock Sales Portal</title>
+<!-- 1. Import Supabase SDK di Head -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root{--yellow:#ffc629;--black:#111;--white:#fff;--bg:#f5f5f5;--muted:#777;--line:#e8e8e8}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#171717;background:var(--bg)}
@@ -18,59 +21,89 @@ button,input,select{font:inherit}button{cursor:pointer}
 .bottom button{border:0;background:white;color:#777;font-size:10px;padding:6px}.bottom button.on{color:#111;font-weight:800}.bottom button.on span{background:var(--yellow);border-radius:6px;padding:4px 10px}
 .bar{height:6px;background:#eee;border-radius:8px;overflow:hidden;margin:8px 0}.bar span{height:100%;display:block;background:var(--yellow)}
 
-/* Proteksi Player YouTube Overlay */
+/* Proteksi Player Video */
 .video-wrapper { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000; margin-bottom: 12px; }
 .video-wrapper iframe { width: 100%; height: 100%; border: 0; }
 .shield-top { position: absolute; top: 0; left: 0; width: 100%; height: 60px; z-index: 10; background: transparent; }
 .hide{display:none!important}.msg{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#171717;color:white;border-radius:8px;padding:12px 16px;font-size:12px;z-index:100;max-width:90vw}
-.brand-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Jarak antara gambar logo dan teks */
-    font-weight: 800;
-  }
+.brand-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+.logo-img { height: 30px; width: auto; object-fit: contain; }
 
-  .logo-img {
-    height: 30px; /* Atur tinggi logo agar pas di header */
-    width: auto;
-    object-fit: contain;
-  }
+/* CSS Overlay Modal Login */
+.auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: grid; place-items: center; padding: 20px; }
+.auth-card { background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 360px; text-align: center; }
 </style>
 </head>
 <body>
-<div class="sales">
- <div class="mobilehead">
-  <div class="brand-logo">
-    <img src="sherlock-logo.png" alt="Logo Sherlock" class="logo-img">
+
+<!-- UI Modal Login & Input PIN -->
+<div id="authContainer" class="auth-overlay">
+  <div class="auth-card">
+    <div class="brand-logo" style="justify-content:center;margin-bottom:15px">
+      <img src="sherlock-logo.png" alt="Logo Sherlock" class="logo-img">
+    </div>
+
+    <!-- Tampilan 1: Tombol Login Google -->
+    <div id="stepGoogle">
+      <h3>Sales Sherlock Portal</h3>
+      <p class="muted">Gunakan akun Google yang terdaftar untuk mengakses materi & kuis.</p>
+      <button class="btn full" id="btnLoginGoogle">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:8px"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        Login dengan Google
+      </button>
+    </div>
+
+    <!-- Tampilan 2: Buat / Masukkan PIN -->
+    <div id="stepPin" class="hide">
+      <h3 id="pinTitle">Masukkan PIN Anda</h3>
+      <p class="muted" id="pinSub">Gunakan 6-digit PIN yang telah Anda buat.</p>
+      <input type="password" id="inputPin" maxlength="6" class="field" style="text-align:center;font-size:24px;letter-spacing:8px" placeholder="******">
+      <button class="btn full" id="btnSubmitPin">Verifikasi PIN</button>
+    </div>
+
+    <div id="authError" class="notice hide" style="background:#ffebe9;border-color:#ffc1c0;color:#c01c28;margin-top:12px"></div>
   </div>
-  <span style="font-size:10px;color:var(--yellow)">SALES PORTAL</span>
 </div>
- <div class="hero">
-   <span class="tag" style="background:var(--yellow);color:#111">AKUN SALES</span>
-   <h2>Halo, Andi Pratama! 👋</h2>
-   <p>Siap tingkatkan product knowledge hari ini?</p>
-   <div class="box">
-     <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px"><span>Progres Training</span><b style="color:var(--yellow)">60%</b></div>
-     <div class="bar" style="background:#444;margin:0"><span style="width:60%"></span></div>
-   </div>
- </div>
+
+<!-- Tampilan Utama Portal Sales -->
+<div class="sales">
+  <div class="mobilehead">
+    <div class="brand-logo">
+      <img src="sherlock-logo.png" alt="Logo Sherlock" class="logo-img">
+    </div>
+    <span style="font-size:10px;color:var(--yellow)">SALES PORTAL</span>
+  </div>
+  <div class="hero">
+    <span class="tag" style="background:var(--yellow);color:#111">AKUN SALES</span>
+    <h2 id="userGreeting">Halo, Sales! 👋</h2>
+    <p>Siap tingkatkan product knowledge hari ini?</p>
+    <div class="box">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px"><span>Progres Training</span><b style="color:var(--yellow)">60%</b></div>
+      <div class="bar" style="background:#444;margin:0"><span style="width:60%"></span></div>
+    </div>
+  </div>
  
- <div class="mcontent" id="salesContent"></div>
+  <div class="mcontent" id="salesContent"></div>
  
- <div class="bottom">
-   <button class="on" data-snav="home"><span>⌂</span><br>Beranda</button>
-   <button data-snav="training"><span>▤</span><br>Materi</button>
-   <button data-snav="quiz"><span>✓</span><br>Quiz</button>
-   <button data-snav="profile"><span>♙</span><br>Profil</button>
- </div>
+  <div class="bottom">
+    <button class="on" data-snav="home"><span>⌂</span><br>Beranda</button>
+    <button data-snav="training"><span>▤</span><br>Materi</button>
+    <button data-snav="quiz"><span>✓</span><br>Quiz</button>
+    <button data-snav="profile"><span>♙</span><br>Profil</button>
+  </div>
 </div>
 <div id="message" class="msg hide"></div>
 
 <script>
-(()=>{
-const $=id=>document.getElementById(id);
-let sp='home', quizDone=false, score=0;
-let materials=[
+// --- KONFIGURASI SUPABASE ---
+const SUPABASE_URL = 'https://zwndbtqsdxjilfvtkana.supabase.co'; 
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3bmRidHFzZHhqaWxmdnRrYW5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0ODMwMjcsImV4cCI6MjEwODA1OTAyN30.YJU91jVVl-RF7yh8rHX-r4DZdNFy4P6W-U4hanDSRH8'; 
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const $id = id => document.getElementById(id);
+let sp = 'home', quizDone = false, score = 0, currentUser = null;
+
+let materials = [
   {id:'m1', name:'VT Hexkeys — Product Knowledge', type:'VIDEO', size:'12 min', ytid:'dQw4w9WgXcQ', desc:'Panduan spesifikasi & keunggulan S2 Selenium Hexkeys.'},
   {id:'m2', name:'VT Gergaji — Product Knowledge', type:'VIDEO', size:'15 min', ytid:'dQw4w9WgXcQ', desc:'Teknik potong & keunggulan material gergaji Sherlock.'}
 ];
@@ -115,14 +148,100 @@ function render(){
     h=`<div class="eyebrow">AKUN SALES</div><h2 class="title">Profil Saya</h2>
     <div class="panel" style="text-align:center">
       <div style="background:var(--yellow);border-radius:50%;width:60px;height:60px;display:grid;place-items:center;margin:auto;font-size:24px;font-weight:800">A</div>
-      <h3>Andi Pratama</h3>
-      <p class="muted">Sales Executive — Area Jakarta</p>
+      <h3>${currentUser ? currentUser.email : 'Sales User'}</h3>
+      <p class="muted">Sales Executive</p>
       <span class="tag ok">Akun Terverifikasi Whitelist</span>
+      <button class="btn secondary full" style="margin-top:15px;color:red" id="btnLogout">Keluar / Sign Out</button>
     </div>`;
   }
-  $('salesContent').innerHTML=h;
+  $id('salesContent').innerHTML=h;
+
+  if($id('btnLogout')){$id('btnLogout').onclick = async () => {
+      await supabaseClient.auth.signOut();
+      window.location.reload();
+    };
+  }
 }
 
+// --- FUNGSI AUTENTIKASI SUPABASE ---
+$id('btnLoginGoogle').onclick = async () => {
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin }
+  });
+  if (error) showError('Gagal terhubung dengan Google: ' + error.message);
+};
+
+async function checkAuthSession() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  
+  if (session) {
+    currentUser = session.user;
+    $id('userGreeting').textContent = `Halo, ${currentUser.email.split('@')[0]}! 👋`;
+    
+    // Cek profil & PIN di tabel user_profiles
+    const { data: profile, error } = await supabaseClient
+      .from('user_profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (error || !profile) {
+      showError('Akses Ditolak: Email Anda tidak terdaftar dalam whitelist admin.');
+      await supabaseClient.auth.signOut();
+      return;
+    }
+
+    $id('stepGoogle').classList.add('hide');$id('stepPin').classList.remove('hide');
+
+    if (!profile.is_pin_set) {
+      $id('pinTitle').textContent = 'Buat 6-Digit PIN Baru';$id('pinSub').textContent = 'PIN ini akan digunakan untuk login di perangkat ini seterusnya.';
+      $id('btnSubmitPin').textContent = 'Simpan PIN Baru';$id('btnSubmitPin').onclick = () => createNewPin(profile.id);
+    } else {
+      $id('pinTitle').textContent = 'Masukkan PIN Portal';$id('btnSubmitPin').onclick = () => verifyPin(profile.pin_hash);
+    }
+  }
+}
+
+async function createNewPin(userId) {
+  const pin = $id('inputPin').value;
+  if (pin.length !== 6 || isNaN(pin)) {
+    showError('PIN harus berupa 6 angka!');
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('user_profiles')
+    .update({ pin_hash: pin, is_pin_set: true })
+    .eq('id', userId);
+
+  if (!error) {
+    unlockPortal();
+  } else {
+    showError('Gagal menyimpan PIN.');
+  }
+}
+
+function verifyPin(correctPin) {
+  const inputPin = $id('inputPin').value;
+  if (inputPin === correctPin) {
+    unlockPortal();
+  } else {
+    showError('PIN salah! Silakan coba lagi.');
+  }
+}
+
+function unlockPortal() {
+  $id('authContainer').classList.add('hide');
+}
+
+function showError(msg) {
+  const errBox = $id('authError');
+  errBox.textContent = msg;
+  errBox.classList.remove('hide');
+}
+
+// Event Listeners Navigasi
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.snav){sp=b.dataset.snav;render();return}
@@ -132,7 +251,7 @@ document.addEventListener('click',e=>{
     let id=a.replace('play_','');
     let m=materials.find(x=>x.id===id);
     if(m){
-      $('salesContent').innerHTML=`
+      $id('salesContent').innerHTML=`
         <div class="eyebrow">VIDEO TRAINING</div>
         <h2 class="title">${m.name}</h2>
         <div class="video-wrapper">
@@ -147,7 +266,7 @@ document.addEventListener('click',e=>{
   else if(a==='quiz'){sp='quiz';render();}
   else if(a==='training'){sp='training';render();}
   else if(a==='start_quiz'){
-    $('quizArea').innerHTML=`
+    $id('quizArea').innerHTML=`
       <div class="panel">
         <div class="sectiontitle">1. Apa material utama dari Sherlock Kunci L Set?</div>
         <button class="answer" data-q="1" data-v="1">A. S2 Selenium</button>
@@ -175,151 +294,9 @@ document.addEventListener('click',e=>{
   b.classList.add('selected');
 });
 
-render();
-})();
-    
-</script>
-    <!-- 1. Import Supabase JS Client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- 2. UI Modal Login & Input PIN -->
-<div id="authContainer" class="auth-overlay">
-  <div class="auth-card">
-     <div class="brand-logo">
-    <img src="sherlock-logo.png" alt="Logo Sherlock" class="logo-img">
-  </div>
-
-    <!-- Tampilan 1: Tombol Login Google -->
-    <div id="stepGoogle">
-      <h3>Sales Sherlock Portal</h3>
-      <p class="muted">Gunakan akun Google yang terdaftar untuk mengakses materi & kuis.</p>
-      <button class="btn full" id="btnLoginGoogle">
-        <svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:8px"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-        Login dengan Google
-      </button>
-    </div>
-
-    <!-- Tampilan 2: Buat / Masukkan PIN -->
-    <div id="stepPin" class="hide">
-      <h3 id="pinTitle">Masukkan PIN Anda</h3>
-      <p class="muted" id="pinSub">Gunakan 6-digit PIN yang telah Anda buat.</p>
-      <input type="password" id="inputPin" maxlength="6" class="field" style="text-align:center;font-size:24px;letter-spacing:8px" placeholder="******">
-      <button class="btn full" id="btnSubmitPin">Verifikasi PIN</button>
-    </div>
-
-    <div id="authError" class="notice hide" style="background:#ffebe9;border-color:#ffc1c0;color:#c01c28;margin-top:12px"></div>
-  </div>
-</div>
-
-<!-- CSS Modal Login -->
-<style>
-.auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: grid; place-items: center; padding: 20px; }
-.auth-card { background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 360px; text-align: center; }
-</style>
-
-<!-- 3. Skrip Integrasi Supabase JS -->
-<script>
-const SUPABASE_URL = 'https://PROJECT_ID_ANDA.supabase.co';
-const SUPABASE_KEY = 'ANON_KEY_SUPABASE_ANDA';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Elemen DOM
-const $id = id => document.getElementById(id);
-let currentUser = null;
-
-// A. Fungsi Login dengan Google
-$id('btnLoginGoogle').onclick = async () => {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin }
-  });
-  if (error) showError('Gagal terhubung dengan Google: ' + error.message);
-};
-
-// B. Cek Sesi Login yang Sedang Aktif
-async function checkAuthSession() {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (session) {
-    currentUser = session.user;
-    
-    // Cek profil & PIN di tabel user_profiles
-    const { data: profile, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single();
-
-    if (error || !profile) {
-      showError('Akses Ditolak: Email Anda tidak terdaftar dalam whitelist admin.');
-      await supabase.auth.signOut();
-      return;
-    }
-
-    // Tampilkan Form PIN
-    $id('stepGoogle').classList.add('hide');
-    $id('stepPin').classList.remove('hide');
-
-    if (!profile.is_pin_set) {
-      $id('pinTitle').textContent = 'Buat 6-Digit PIN Baru';
-      $id('pinSub').textContent = 'PIN ini akan digunakan untuk login di perangkat ini seterusnya.';
-      $id('btnSubmitPin').textContent = 'Simpan PIN Baru';
-      $id('btnSubmitPin').onclick = () => createNewPin(profile.id);
-    } else {
-      $id('pinTitle').textContent = 'Masukkan PIN Portal';
-      $id('btnSubmitPin').onclick = () => verifyPin(profile.pin_hash);
-    }
-  }
-}
-
-// C. Fungsi Membuat PIN Baru
-async function createNewPin(userId) {
-  const pin = $id('inputPin').value;
-  if (pin.length !== 6 || isNaN(pin)) {
-    showError('PIN harus berupa 6 angka!');
-    return;
-  }
-
-  // Simpan PIN ke Supabase (Sebaiknya di-hash)
-  const { error } = await supabase
-    .from('user_profiles')
-    .update({ pin_hash: pin, is_pin_set: true })
-    .eq('id', userId);
-
-  if (!error) {
-    unlockPortal();
-  } else {
-    showError('Gagal menyimpan PIN.');
-  }
-}
-
-// D. Fungsi Verifikasi PIN
-function verifyPin(correctPin) {
-  const inputPin = $id('inputPin').value;
-  if (inputPin === correctPin) {
-    unlockPortal();
-  } else {
-    showError('PIN salah! Silakan coba lagi.');
-  }
-}
-
-function unlockPortal() {
-  $id('authContainer').classList.add('hide'); // Tutup modal login, masuk ke portal
-}
-
-function showError(msg) {
-  const errBox = $id('authError');
-  errBox.textContent = msg;
-  errBox.classList.remove('hide');
-}
-
-// Jalankan pengecekan saat halaman selesai dimuat
+// Jalankan Inisialisasi
 checkAuthSession();
-    // Ganti nilai di dalam tanda petik dengan data asli dari Supabase Anda
-const SUPABASE_URL = 'https://zwndbtqsdxjilfvtkana.supabase.co'; 
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3bmRidHFzZHhqaWxmdnRrYW5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0ODMwMjcsImV4cCI6MjEwODA1OTAyN30.YJU91jVVl-RF7yh8rHX-r4DZdNFy4P6W-U4hanDSRH8'; 
-
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+render();
 </script>
 </body>
 </html>
