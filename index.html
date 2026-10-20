@@ -1,11 +1,14 @@
 <div class="video-wrapper">
-  <!-- Pelindung Atas (Mencegah Klik Pop-out/Buka di Google Drive) -->
-  <div class="drive-shield"></div>
+  <!-- Pelindung Atas (Menutupi Judul & Tombol Share) -->
+  <div class="shield-top"></div>
+  
+  <!-- Pelindung Bawah Kiri (Menutupi Tombol Watch on YouTube) -->
+  <div class="shield-bottom-left"></div>
 
-  <!-- Player Video Google Drive -->
+  <!-- Frame Video YouTube -->
   <iframe 
-    src="https://drive.google.com/file/d/KODE_FILE_VIDEO_ANDA/preview" 
-    allow="autoplay" 
+    src="https://www.youtube.com/embed/KODE_VIDEO_ANDA?rel=0&modestbranding=1&controls=1" 
+    allow="autoplay; encrypted-media" 
     allowfullscreen>
   </iframe>
 </div>
@@ -18,6 +21,7 @@
     border-radius: 8px;
     overflow: hidden;
     background: #000;
+    margin-bottom: 12px;
   }
 
   .video-wrapper iframe {
@@ -26,13 +30,24 @@
     border: 0;
   }
 
-  /* Menutupi tombol "Pop-out" / "Buka di Google Drive" di pojok kanan atas */
-  .drive-shield {
+  /* 1. Menutupi bagian ATAS (Judul & Tombol Share) */
+  .shield-top {
     position: absolute;
     top: 0;
-    right: 0;
-    width: 60px;
-    height: 60px;
+    left: 0;
+    width: 100%;
+    height: 75px; /* Dipertinggi dari 60px ke 75px */
+    z-index: 10;
+    background: transparent;
+  }
+
+  /* 2. Menutupi bagian BAWAH KIRI (Tombol Watch on YouTube) */
+  .shield-bottom-left {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60%;  /* Menutupi setengah area bawah tempat tombol Watch on YouTube berada */
+    height: 50px; /* Menutupi tinggi bar tombol YouTube */
     z-index: 10;
     background: transparent;
   }
