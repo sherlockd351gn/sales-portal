@@ -1,54 +1,165 @@
-<div class="video-wrapper">
-  <!-- Pelindung Atas (Menutupi Judul & Tombol Share) -->
-  <div class="shield-top"></div>
-  
-  <!-- Pelindung Bawah Kiri (Menutupi Tombol Watch on YouTube) -->
-  <div class="shield-bottom-left"></div>
-
-  <!-- Frame Video YouTube -->
-  <iframe 
-    src="https://www.youtube.com/embed/KODE_VIDEO_ANDA?rel=0&modestbranding=1&controls=1" 
-    allow="autoplay; encrypted-media" 
-    allowfullscreen>
-  </iframe>
-</div>
-
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sherlock Sales Portal</title>
 <style>
-  .video-wrapper {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #000;
-    margin-bottom: 12px;
-  }
+:root{--yellow:#ffc629;--black:#111;--white:#fff;--bg:#f5f5f5;--muted:#777;--line:#e8e8e8}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#171717;background:var(--bg)}
+button,input,select{font:inherit}button{cursor:pointer}
+.btn{background:var(--yellow);color:#111;border:0;border-radius:8px;padding:10px 14px;font-weight:700}.btn.secondary{background:white;border:1px solid #ddd}.btn.full{width:100%;margin-top:10px}.muted{color:var(--muted);font-size:12px;line-height:1.6}.eyebrow{font-size:10px;font-weight:800;letter-spacing:1.4px;color:#9a7600}.title{font-size:23px;font-weight:850;margin:6px 0}.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.tag{display:inline-block;padding:5px 8px;background:#eee;border-radius:5px;font-size:10px;font-weight:700}.ok{background:#e5f6e9;color:#18753b}.wait{background:#fff1c3;color:#745600}.notice{background:#fff8df;border:1px solid #efdfa8;border-radius:8px;padding:12px;font-size:12px;line-height:1.6}.field{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;background:white;margin:5px 0 12px;font-size:13px}.sectiontitle{font-size:15px;font-weight:800;margin:5px 0 13px}.row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}.ico{width:42px;height:42px;display:grid;place-items:center;background:#fff0bd;border-radius:9px;font-size:21px;flex-shrink:0}.grow{flex:1;min-width:0}.rowtitle{font-size:13px;font-weight:750;margin-bottom:4px}.answer{display:block;width:100%;padding:11px;margin-top:8px;text-align:left;background:white;border:1px solid #ddd;border-radius:7px;font-size:12px}.answer.selected{background:#fff4cd;border:2px solid #d2a000}
+.sales{max-width:500px;margin:0 auto;background:#fff;min-height:100vh;box-shadow:0 0 20px #00000010}
+.mobilehead{background:#111;color:white;padding:15px 17px;display:flex;justify-content:space-between;align-items:center}
+.hero{background:#111;color:white;padding:20px 17px}.hero h2{font-size:22px;margin:12px 0 6px}.hero p{font-size:12px;color:#ccc}.hero .box{padding:13px;background:#252525;border:1px solid #444;border-radius:9px;margin-top:14px}
+.mcontent{padding:18px;padding-bottom:80px}
+.bottom{display:flex;justify-content:space-around;background:white;border-top:1px solid #eee;padding:10px 0;position:fixed;bottom:0;width:100%;max-width:500px}
+.bottom button{border:0;background:white;color:#777;font-size:10px;padding:6px}.bottom button.on{color:#111;font-weight:800}.bottom button.on span{background:var(--yellow);border-radius:6px;padding:4px 10px}
+.bar{height:6px;background:#eee;border-radius:8px;overflow:hidden;margin:8px 0}.bar span{height:100%;display:block;background:var(--yellow)}
 
-  .video-wrapper iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-
-  /* 1. Menutupi bagian ATAS (Judul & Tombol Share) */
-  .shield-top {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 75px; /* Dipertinggi dari 60px ke 75px */
-    z-index: 10;
-    background: transparent;
-  }
-
-  /* 2. Menutupi bagian BAWAH KIRI (Tombol Watch on YouTube) */
-  .shield-bottom-left {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 60%;  /* Menutupi setengah area bawah tempat tombol Watch on YouTube berada */
-    height: 50px; /* Menutupi tinggi bar tombol YouTube */
-    z-index: 10;
-    background: transparent;
-  }
+/* Proteksi Player YouTube Overlay */
+.video-wrapper { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000; margin-bottom: 12px; }
+.video-wrapper iframe { width: 100%; height: 100%; border: 0; }
+.shield-top { position: absolute; top: 0; left: 0; width: 100%; height: 60px; z-index: 10; background: transparent; }
+.hide{display:none!important}.msg{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#171717;color:white;border-radius:8px;padding:12px 16px;font-size:12px;z-index:100;max-width:90vw}
 </style>
+</head>
+<body>
+<div class="sales">
+ <div class="mobilehead"><b>SHERLOCK <span style="color:var(--yellow)">TOOLS</span></b><span style="font-size:10px;color:var(--yellow)">SALES PORTAL</span></div>
+ <div class="hero">
+   <span class="tag" style="background:var(--yellow);color:#111">AKUN SALES</span>
+   <h2>Halo, Andi Pratama! 👋</h2>
+   <p>Siap tingkatkan product knowledge hari ini?</p>
+   <div class="box">
+     <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px"><span>Progres Training</span><b style="color:var(--yellow)">60%</b></div>
+     <div class="bar" style="background:#444;margin:0"><span style="width:60%"></span></div>
+   </div>
+ </div>
+ 
+ <div class="mcontent" id="salesContent"></div>
+ 
+ <div class="bottom">
+   <button class="on" data-snav="home"><span>⌂</span><br>Beranda</button>
+   <button data-snav="training"><span>▤</span><br>Materi</button>
+   <button data-snav="quiz"><span>✓</span><br>Quiz</button>
+   <button data-snav="profile"><span>♙</span><br>Profil</button>
+ </div>
+</div>
+<div id="message" class="msg hide"></div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+let sp='home', quizDone=false, score=0;
+let materials=[
+  {id:'m1', name:'VT Hexkeys — Product Knowledge', type:'VIDEO', size:'12 min', ytid:'dQw4w9WgXcQ', desc:'Panduan spesifikasi & keunggulan S2 Selenium Hexkeys.'},
+  {id:'m2', name:'VT Gergaji — Product Knowledge', type:'VIDEO', size:'15 min', ytid:'dQw4w9WgXcQ', desc:'Teknik potong & keunggulan material gergaji Sherlock.'}
+];
+
+function say(s){let m=$('message');m.textContent=s;m.classList.remove('hide');clearTimeout(window._msgTimer);window._msgTimer=setTimeout(()=>m.classList.add('hide'),2800)}
+
+function render(){
+  document.querySelectorAll('[data-snav]').forEach(b=>b.classList.toggle('on',b.dataset.snav===sp));
+  let h='';
+  if(sp==='home'){
+    h=`<div class="eyebrow">OVERVIEW</div><h3 class="sectiontitle">Lanjutkan Pembelajaran</h3>
+    <div class="panel" style="background:#fff9e8;border-color:#efdfa8">
+      <span class="tag" style="background:var(--yellow)">REKOMENDASI</span>
+      <h3>VT Hexkeys Training</h3>
+      <div class="muted">Video training spesifikasi produk Hexkeys.</div>
+      <button class="btn full" data-action="play_m1">Tonton Video →</button>
+    </div>
+    <h3 class="sectiontitle">Modul Kuis Aktivitas</h3>
+    <div class="row"><div class="ico">✓</div><div class="grow"><div class="rowtitle">Quiz VT Hexkeys</div><div class="muted">10 Soal · Pilihan Ganda</div></div><button class="btn secondary" data-action="quiz">Buka Kuis</button></div>`;
+  }
+  else if(sp==='training'){
+    h=`<div class="eyebrow">LEARNING CENTER</div><h2 class="title">Materi Training</h2><p class="muted">Video pembelajaran resmi produk Sherlock Tools.</p>
+    ${materials.map(m=>`
+      <div class="panel">
+        <div class="rowtitle">${m.name}</div>
+        <div class="muted">${m.desc}</div>
+        <button class="btn full" style="margin-top:10px" data-action="play_${m.id}">▶ Putar Video Training</button>
+      </div>
+    `).join('')}`;
+  }
+  else if(sp==='quiz'){
+    h=`<div class="eyebrow">EVALUASI</div><h2 class="title">Kuis Produk</h2><p class="muted">Uji pemahaman Anda setelah menonton video.</p>
+    <div class="panel">
+      <div class="rowtitle">Quiz VT Hexkeys Sherlock</div>
+      <div class="muted">10 Soal · Passing Grade: 75%</div>
+      <div style="margin:10px 0"><span class="tag ${quizDone?'ok':'wait'}">${quizDone?'Sudah Selesai (Skor: '+score+')':'Belum Dikerjakan'}</span></div>
+      ${quizDone?`<button class="btn secondary full" data-action="view_result">Lihat Hasil</button>`:`<button class="btn full" data-action="start_quiz">Mulai Kuis →</button>`}
+    </div>
+    <div id="quizArea"></div>`;
+  }
+  else if(sp==='profile'){
+    h=`<div class="eyebrow">AKUN SALES</div><h2 class="title">Profil Saya</h2>
+    <div class="panel" style="text-align:center">
+      <div style="background:var(--yellow);border-radius:50%;width:60px;height:60px;display:grid;place-items:center;margin:auto;font-size:24px;font-weight:800">A</div>
+      <h3>Andi Pratama</h3>
+      <p class="muted">Sales Executive — Area Jakarta</p>
+      <span class="tag ok">Akun Terverifikasi Whitelist</span>
+    </div>`;
+  }
+  $('salesContent').innerHTML=h;
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.snav){sp=b.dataset.snav;render();return}
+  const a=b.dataset.action;if(!a)return;
+
+  if(a.startsWith('play_')){
+    let id=a.replace('play_','');
+    let m=materials.find(x=>x.id===id);
+    if(m){
+      $('salesContent').innerHTML=`
+        <div class="eyebrow">VIDEO TRAINING</div>
+        <h2 class="title">${m.name}</h2>
+        <div class="video-wrapper">
+          <div class="shield-top"></div>
+          <iframe src="https://www.youtube.com/embed/${m.ytid}?rel=0&modestbranding=1&controls=1" allowfullscreen></iframe>
+        </div>
+        <div class="notice">🔒 <b>Proteksi Video:</b> Judul & tombol bagikan telah dikunci untuk menjaga kerahasiaan materi internal.</div>
+        <button class="btn secondary full" style="margin-top:12px" data-action="training">← Kembali ke Daftar Materi</button>
+      `;
+    }
+  }
+  else if(a==='quiz'){sp='quiz';render();}
+  else if(a==='training'){sp='training';render();}
+  else if(a==='start_quiz'){
+    $('quizArea').innerHTML=`
+      <div class="panel">
+        <div class="sectiontitle">1. Apa material utama dari Sherlock Kunci L Set?</div>
+        <button class="answer" data-q="1" data-v="1">A. S2 Selenium</button>
+        <button class="answer" data-q="1" data-v="0">B. Chrome Vanadium Biasa</button>
+        <button class="answer" data-q="1" data-v="0">C. Besi Cor</button>
+        
+        <div class="sectiontitle" style="margin-top:15px">2. Berapa ukuran terkecil dalam set Sherlock Kunci L?</div>
+        <button class="answer" data-q="2" data-v="1">A. 1.5 mm</button>
+        <button class="answer" data-q="2" data-v="0">B. 2.0 mm</button>
+        
+        <button class="btn full" style="margin-top:15px" data-action="submit_quiz">Kirim Jawaban Kuis</button>
+      </div>
+    `;
+  }
+  else if(a==='submit_quiz'){
+    quizDone=true; score=100;
+    say('Kuis berhasil dikirim! Skor Anda: 100/100');
+    render();
+  }
+});
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.answer');if(!b)return;
+  document.querySelectorAll(`.answer[data-q="${b.dataset.q}"]`).forEach(x=>x.classList.remove('selected'));
+  b.classList.add('selected');
+});
+
+render();
+})();
+</script>
+</body>
+</html>
